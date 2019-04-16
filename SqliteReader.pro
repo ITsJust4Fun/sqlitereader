@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -26,10 +26,20 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        SqliteReader.cpp
+    SqliteReaderView.cpp \
+    SqliteReaderModel.cpp \
+    SqliteReaderController.cpp \
+    UnsupportedDBException.cpp \
+    UnreachableDBException.cpp \
+    DBException.cpp
 
 HEADERS += \
-        SqliteReader.h
+    SqliteReaderView.h \
+    SqliteReaderModel.h \
+    SqliteReaderController.h \
+    UnsupportedDBException.h \
+    UnreachableDBException.h \
+    DBException.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

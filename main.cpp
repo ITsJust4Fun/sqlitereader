@@ -1,10 +1,10 @@
-#include "SqliteReader.h"
+#include "SqliteReaderView.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    SqliteReader w;
+    SqliteReaderView w;
     w.show();
 
     return a.exec();

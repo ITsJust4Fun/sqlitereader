@@ -1,11 +1,25 @@
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+#ifndef SQLITEREADERCONTROLLER_H
+#define SQLITEREADERCONTROLLER_H
 
+#include <QFileDialog>
+#include <QLineEdit>
 
-class Controller
+class SqliteReaderController : public QObject
 {
+    Q_OBJECT
+
 public:
-    Controller();
+    SqliteReaderController();
+    virtual ~SqliteReaderController();
+
+public slots:
+    void fileOpen(const QString &path);
+    void onTextChanged(const QString &text);
+
+signals:
+    void fileOpened(const QString &path);
+    void requestReady(QString &request);
+    void filterChanged(int column, const QString &filter);
 };
 
-#endif // CONTROLLER_H
+#endif // SQLITEREADERCONTROLLER_H

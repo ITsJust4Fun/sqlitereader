@@ -2,5 +2,10 @@
 
 UnreachableDBException::UnreachableDBException()
 {
+    exceptionText = "DB Unreachable!!!";
+}
+
+UnreachableDBException::~UnreachableDBException()
+{
 
 }
