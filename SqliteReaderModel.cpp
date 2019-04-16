@@ -8,6 +8,10 @@ SqliteReaderModel::SqliteReaderModel()
     timer->start();
 }
 
+/*
+ * Из query заполняется двумерный список строк
+ * с учётом фильтров.
+*/
 void SqliteReaderModel::fillListFromSqlQuery(QList<QStringList> &dbCopy, QSqlQuery &query)
 {
     query.first();
@@ -26,6 +30,12 @@ void SqliteReaderModel::fillListFromSqlQuery(QList<QStringList> &dbCopy, QSqlQue
     }
 }
 
+/*
+ * Установка соединения с бд и получение
+ * списка таблиц и колонок. Если что-то идёт не так, то
+ * выбрасываются исключения.
+ * Приложение работает только с первой таблицей в бд.
+*/
 void SqliteReaderModel::connectToDatabase(const QString &path)
 {
     if (db_.isOpen()) {
@@ -55,6 +65,11 @@ void SqliteReaderModel::connectToDatabase(const QString &path)
     }
 }
 
+/*
+ * Запрос к бд.
+ * Если поизошла ошибка, то
+ * выбрасывается исключение
+*/
 void SqliteReaderModel::startRequest(QSqlQuery &query, const QString &request)
 {
     if (!query.exec(request)) {
@@ -63,6 +78,10 @@ void SqliteReaderModel::startRequest(QSqlQuery &query, const QString &request)
     }
 }
 
+/*
+ * Переход модели в изначальное
+ * состояние
+*/
 void SqliteReaderModel::clearModel()
 {
     db_.close();
@@ -72,6 +91,12 @@ void SqliteReaderModel::clearModel()
     filter_list_.clear();
 }
 
+/*
+ * Запрос к бд.
+ * Обратотка исключений в случае ошибок.
+ * Формирование двумерного списка строк
+ * для отображения в таблицу
+*/
 void SqliteReaderModel::makeRequest(QString &request)
 {
     if (!query_) {
@@ -90,6 +115,11 @@ void SqliteReaderModel::makeRequest(QString &request)
     emit queryReady(dbCopy, db_columns_);
 }
 
+/*
+ * Фиксирование изменений фильтров и
+ * создание двумерного списка строк для
+ * отображения в таблице с учётом фильтров.
+*/
 void SqliteReaderModel::changeFilter(int column, const QString &filter)
 {
     filter_list_[column] = filter;
@@ -99,6 +129,13 @@ void SqliteReaderModel::changeFilter(int column, const QString &filter)
     emit queryReady(dbCopy, emptyList);
 }
 
+/*
+ * Синхронизация бд с программой.
+ * Выполняется по таймеру.
+ * Создаются 2 двумерных списка строк
+ * и сравниваются. Если занчения не совпадают, то
+ * таблица обновляется.
+*/
 void SqliteReaderModel::syncDatabase()
 {
     if (!query_) {

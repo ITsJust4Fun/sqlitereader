@@ -25,7 +25,7 @@ public:
     void startRequest(QSqlQuery &query, const QString &request);
     virtual ~SqliteReaderModel();
     QTimer *timer;
-    const int SYNC_TIME = 1000;
+    const int SYNC_TIME = 1000;  //время через которое бд синхронизируется с приложением.
 
 public slots:
     void connectToDatabase(const QString &path);
@@ -40,7 +40,7 @@ signals:
 private:
     QSqlDatabase db_;
     QSqlQuery *query_ = nullptr;
-    QString last_request_ = "";
+    QString last_request_ = "";  //последний запрос к бд. Сбрасывается при изменении бд.
     QStringList db_tables_;
     QStringList db_columns_;
     QStringList filter_list_;

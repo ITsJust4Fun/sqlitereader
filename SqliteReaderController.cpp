@@ -5,6 +5,11 @@ SqliteReaderController::SqliteReaderController()
 
 }
 
+/*
+ * Вызывается при выбре файла бд пользователем.
+ * Путь проверяется на пустоту, после файл открывается
+ * в модели и формируется запрос к бд.
+*/
 void SqliteReaderController::fileOpen(const QString &path)
 {
     if(path == "") {
@@ -15,6 +20,9 @@ void SqliteReaderController::fileOpen(const QString &path)
     emit requestReady(request);
 }
 
+/*
+ * Сообщает модели о изменении фильтров.
+*/
 void SqliteReaderController::onTextChanged(const QString &text)
 {
     QLineEdit *line = qobject_cast<QLineEdit*>(sender());

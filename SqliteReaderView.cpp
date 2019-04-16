@@ -12,6 +12,15 @@ SqliteReaderView::SqliteReaderView(QWidget *parent)
     makeConnections();
 }
 
+
+/*
+ * Данный метод настраиает окно, а именно:
+ * -появилось в центре экрана (сначала нужно определить рамер экрана)
+ * -название берётся из переменной APP_NAME
+ * -виджет должен принимать файлы через drag'n'drop
+ * -начальные(и минимальные) размеры окна хранятся в переменных
+ * WIDGET_WIDTH и WIDGET_HEIGHT
+*/
 void SqliteReaderView::initWindow()
 {
     screens_ = QGuiApplication::screens();
@@ -25,13 +34,20 @@ void SqliteReaderView::initWindow()
                 WIDGET_WIDTH, WIDGET_HEIGHT);
 }
 
+/*
+ * Данный метод определяет элементы виджета
+ * -создаёт grid layout и верхнее меню
+ * -в лэйаут заносится таблица и верхнее меню
+ * -в верхнее меню добавляется всплывающее меню File,
+ * в котором есть 2 пункта (выход и открыть файл)
+*/
 void SqliteReaderView::initWindowElements()
 {
-    gridLayout = new QGridLayout;
+    gridLayout = new QGridLayout();
     fileMenu = new QMenu("File");
     fileMenu->addAction("Open", this, SLOT(selectFile()), Qt::CTRL + Qt::Key_O);
     fileMenu->addAction("Quit", this, SLOT(close()), Qt::CTRL + Qt::Key_Q);
-    menuBar = new QMenuBar;
+    menuBar = new QMenuBar();  //верхнее меню
     menuBar->addMenu(fileMenu);
     gridLayout->addWidget(table);
     gridLayout->setMenuBar(menuBar);
@@ -40,6 +56,13 @@ void SqliteReaderView::initWindowElements()
     setLayout(gridLayout);
 }
 
+/*
+ * Формирование таблицы, в которой количество и названия колонок
+ * берутся из бд. Каждой колонке присваивается свой фильтр,
+ * которому прописывается какой колонке он соответствует.
+ * Каждый фильтр связывается со слотом в контроллере, который будет
+ * реагировать на изменения.
+*/
 void SqliteReaderView::initTable(const QStringList &columns)
 {
     table->clear();
@@ -66,30 +89,63 @@ void SqliteReaderView::initTable(const QStringList &columns)
     table->setVerticalHeaderLabels(*verticalHeaderLabels);
 }
 
+/*
+ * Установка метаобъектных связей
+*/
 void SqliteReaderView::makeConnections()
 {
+    /*
+     * Отправление пути в контроллер, который выбрал пользователь
+     * через меню File
+    */
     QObject::connect(this, SIGNAL(fileSelected(const QString &)),
                      controller, SLOT(fileOpen(const QString &)));
 
+    /*
+     * Когда контроллер проверит на пустоту файл, он отправит
+     * путь в модель, чтобы открыть бд и заполнить поля модели.
+     * Модель генерирует исключения в случае ошибок.
+    */
     QObject::connect(controller, SIGNAL(fileOpened(const QString &)),
                      model, SLOT(connectToDatabase(const QString &)));
 
+    /*
+     * Контроллер создаёт запрос к бд и предаёт в модель
+    */
     QObject::connect(controller, SIGNAL(requestReady(QString &)),
                      model, SLOT(makeRequest(QString &)));
 
+    /*
+     * Модель на основе фильтров и данных из бд создаёт двумерный лист строк
+     * и отпрвляет его в вид для отображения в таблице.
+    */
     QObject::connect(model, SIGNAL(queryReady(const QList<QStringList> &, const QStringList &)),
                      this, SLOT(fillTable(const QList<QStringList> &, const QStringList &)));
 
+    /*
+     * передача фильтров и его номера колонки в модель для дальнейшего
+     * изменения таблицы
+    */
     QObject::connect(controller, SIGNAL(filterChanged(int, const QString &)),
                      model, SLOT(changeFilter(int, const QString &)));
 
+    /*
+     * синхронизация с бд по таймеру
+    */
     QObject::connect(model->timer, SIGNAL(timeout()),
                      model, SLOT(syncDatabase()));
 
+    /*
+     * Если бд стала недоступна, то вызывается метод onError
+    */
     QObject::connect(model, SIGNAL(dbUnreachable(const DBException &)),
                      this, SLOT(onError(const DBException &)));
 }
 
+/*
+ * проверка файлов, которые пользователь открывает через
+ * drag'n'drop. Файл должен быть один и иметь расширение *.db3
+*/
 void SqliteReaderView::dragEnterEvent(QDragEnterEvent *e)
 {
     bool isSingleDrop = e->mimeData()->urls().size() == 1;
@@ -100,6 +156,9 @@ void SqliteReaderView::dragEnterEvent(QDragEnterEvent *e)
     }
 }
 
+/*
+ * открытие файла при drag'n'drop
+*/
 void SqliteReaderView::dropEvent(QDropEvent *e)
 {
     QString path = e->mimeData()->urls().at(0).toLocalFile();
@@ -111,6 +170,9 @@ void SqliteReaderView::dropEvent(QDropEvent *e)
     }
 }
 
+/*
+ * открытие файла через верхнее меню
+*/
 void SqliteReaderView::selectFile()
 {
     QString path = QFileDialog::getOpenFileName(
@@ -126,6 +188,10 @@ void SqliteReaderView::selectFile()
     }
 }
 
+/*
+ * при ошибке сбрасывается таблица и выводится
+ * текст ошибки
+*/
 void SqliteReaderView::onError(const DBException &e)
 {
     QMessageBox messageBox;
@@ -137,6 +203,11 @@ void SqliteReaderView::onError(const DBException &e)
     table->setColumnCount(0);
 }
 
+/*
+ * Добавление ряда в таблицу.
+ * Так как вертикальные хедеры не стандартные
+ * приходится следить за нумерацией.
+*/
 void SqliteReaderView::addRowToTable(const QStringList &data)
 {
     table->insertRow(table->rowCount());
@@ -150,6 +221,9 @@ void SqliteReaderView::addRowToTable(const QStringList &data)
     table->setVerticalHeaderLabels(*verticalHeaderLabels);
 }
 
+/*
+ * отчистка таблицы, но не затрагивая ряд фильтров
+*/
 void SqliteReaderView::removeTableRows()
 {
     for (int i = table->rowCount() - 1; i > 0; i--) {
@@ -158,6 +232,15 @@ void SqliteReaderView::removeTableRows()
     }
 }
 
+/*
+ * Заполнение таблиы данными из модели.
+ * Если dbColumns пустой, то в таблице нужно
+ * просто обновить содержимое не затрагивая фильтры.
+ * Если же dbColumns не пустой, то таблицу нужно
+ * сначала полностью отчистить.
+ * Так же тайтл окна приводится к формату:
+ * [путь_к_файлу_бд] - название_приложения
+*/
 void SqliteReaderView::fillTable(const QList<QStringList> &db, const QStringList &dbColumns)
 {
     setWindowTitle("[" + path_ + "] - " + APP_NAME);
@@ -172,6 +255,9 @@ void SqliteReaderView::fillTable(const QList<QStringList> &db, const QStringList
     }
 }
 
+/*
+ * сброс пути к файлу и тайтла окна
+*/
 void SqliteReaderView::resetPath()
 {
     path_ = "";

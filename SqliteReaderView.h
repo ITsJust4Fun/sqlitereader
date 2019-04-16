@@ -24,10 +24,10 @@ class SqliteReaderView : public QWidget
     Q_OBJECT
 
 public:
-    const QString APP_NAME = "SQLite Reader";
-    const int WIDGET_HEIGHT = 400;
-    const int WIDGET_WIDTH = 800;
-    const QString FILTER_PLACEHOLDER = "Filter";
+    const QString APP_NAME = "SQLite Reader";  //название приложения
+    const int WIDGET_HEIGHT = 400;  //минимальная высота окна
+    const int WIDGET_WIDTH = 800;  //минимальная ширина окна
+    const QString FILTER_PLACEHOLDER = "Filter";  //текст отображаемый на фильтрах, когда они пустые
     SqliteReaderView(QWidget *parent = nullptr);
     void initWindow();
     void initWindowElements();
